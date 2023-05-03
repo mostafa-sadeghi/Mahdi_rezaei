@@ -85,8 +85,8 @@
 # print(c)
 
 
-user_name = input("What's your name: ").lower()
-if user_name == "reza" or user_name == "sara":
-    print("you have a nice name.")
-else:
-    print("your name is ok.")
+# user_name = input("What's your name: ").lower()
+# if user_name == "reza" or user_name == "sara":
+#     print("you have a nice name.")
+# else:
+#     print("your name is ok.")
