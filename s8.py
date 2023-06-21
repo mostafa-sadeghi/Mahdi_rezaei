@@ -1,7 +1,7 @@
 # https://www.iconarchive.com/
 
 import pygame
-
+import random
 pygame.init()
 
 WINDOW_WIDTH = 1000
@@ -14,8 +14,8 @@ clock = pygame.time.Clock()
 PLAYER_STARTING_LIVES = 5
 PLAYER_VELOCITY = 10
 COIN_STARTING_VELOCITY = 10
-
-
+BUFFER_DISTANCE = 100
+COIN_ACCELERATION = 0.5
 score = 0
 
 player_lives = PLAYER_STARTING_LIVES
@@ -28,7 +28,7 @@ BLACK = (0, 0, 0)
 
 font = pygame.font.Font("AttackGraffiti.ttf", 32)
 
-score_text = font.render("Score: "+ str(score), True, GREEN, DARKGREEN)
+score_text = font.render("Score: " + str(score), True, GREEN, DARKGREEN)
 score_rect = score_text.get_rect()
 score_rect.topleft = (10, 10)
 
@@ -37,10 +37,14 @@ title_rect = title_text.get_rect()
 title_rect.centerx = WINDOW_WIDTH//2
 title_rect.y = 10
 
-lives_text = font.render("Lives: "+ str(player_lives), True, GREEN, DARKGREEN)
+lives_text = font.render("Lives: " + str(player_lives), True, GREEN, DARKGREEN)
 lives_rect = lives_text.get_rect()
 lives_rect.topright = (WINDOW_WIDTH - 10, 10)
 
+
+coin_sound = pygame.mixer.Sound("coin_sound.wav")
+miss_sound = pygame.mixer.Sound("miss_sound.wav")
+pygame.mixer.music.load("ftd_background_music.wav")
 
 
 player_image = pygame.image.load("dragon_right.png")
@@ -50,34 +54,78 @@ player_rect = player_image.get_rect()
 player_rect.x = 100
 player_rect.y = 100
 
-# TODO اضافه کردن سکه
+
+coin_image = pygame.image.load("coin.png")
+coin_rect = coin_image.get_rect()
+coin_rect.x = WINDOW_WIDTH + BUFFER_DISTANCE
+coin_rect.y = random.randint(64, WINDOW_HEIGHT - 32)
+
+pygame.mixer.music.play(-1, 0.0)
+
 running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP and player_rect.top > 64:
-                player_rect.y -= PLAYER_VELOCITY
-        # TODO اضافه کردن جهت پائین
+        # if event.type == pygame.KEYDOWN:
+        #     if event.key == pygame.K_UP and player_rect.top > 64:
+        #         player_rect.y -= PLAYER_VELOCITY
 
-    # keys = pygame.key.get_pressed()  
-    # if keys[pygame.K_UP] and player_rect.top > 64:
-    #     player_rect.y -= PLAYER_VELOCITY
+        # if event.type == pygame.KEYUP:
+        #     if event.key == pygame.K_DOWN:
+        #         player_rect.y += PLAYER_VELOCITY
 
-    # TODO همین روش برای جهت پائین
+        # if event.type == pygame.KEYDOWN:
+        #     if event.key == pygame.K_LEFT:
+        #         player_rect.x -= PLAYER_VELOCITY
+
+        # if event.type == pygame.KEYDOWN:
+        #     if event.key == pygame.K_RIGHT:
+        #         player_rect.x += PLAYER_VELOCITY
+
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_UP] and player_rect.top > 64:
+        player_rect.y -= PLAYER_VELOCITY
+
+    if keys[pygame.K_DOWN] and player_rect.bottom < WINDOW_HEIGHT:
+        player_rect.y += PLAYER_VELOCITY
+
+    if keys[pygame.K_LEFT] and player_rect.left > 0:
+        player_rect.x -= PLAYER_VELOCITY
+
+    if keys[pygame.K_RIGHT] and player_rect.right < WINDOW_WIDTH:
+        player_rect.x += PLAYER_VELOCITY
+
+    if coin_rect.x < 0:
+        player_lives -= 1
+        miss_sound.play()
+        coin_rect.x = WINDOW_WIDTH + BUFFER_DISTANCE
+        coin_rect.y = random.randint(64, WINDOW_HEIGHT - 32)
+    else:
+        coin_rect.x -= coin_velocity
+
+    if player_rect.colliderect(coin_rect):
+        score += 1
+        coin_sound.play()
+        coin_velocity += COIN_ACCELERATION
+        coin_rect.x = WINDOW_WIDTH + BUFFER_DISTANCE
+        coin_rect.y = random.randint(64, WINDOW_HEIGHT - 32)
+
+    score_text = font.render("Score: " + str(score), True, GREEN, DARKGREEN)
+    lives_text = font.render(
+        "Lives: " + str(player_lives), True, GREEN, DARKGREEN)
+
+    # TODO Add Game Over
 
     display_surface.fill(BLACK)
-        
 
     display_surface.blit(score_text, score_rect)
-    display_surface.blit(title_text,title_rect)
+    display_surface.blit(title_text, title_rect)
     display_surface.blit(lives_text, lives_rect)
-    pygame.draw.line(display_surface, WHITE, (0,64), (WINDOW_WIDTH,64), 2)
-
-
+    pygame.draw.line(display_surface, WHITE, (0, 64), (WINDOW_WIDTH, 64), 2)
 
     display_surface.blit(player_image, player_rect)
+    display_surface.blit(coin_image, coin_rect)
     pygame.display.update()
 
     clock.tick(FPS)
