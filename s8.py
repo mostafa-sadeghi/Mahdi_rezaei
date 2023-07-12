@@ -2,6 +2,8 @@
 
 import pygame
 import random
+
+
 pygame.init()
 
 WINDOW_WIDTH = 1000
@@ -25,7 +27,7 @@ GREEN = (0, 255, 0)
 DARKGREEN = (10, 50, 10)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-
+RED = (255, 0, 0)
 font = pygame.font.Font("AttackGraffiti.ttf", 32)
 
 score_text = font.render("Score: " + str(score), True, GREEN, DARKGREEN)
@@ -42,6 +44,16 @@ lives_rect = lives_text.get_rect()
 lives_rect.topright = (WINDOW_WIDTH - 10, 10)
 
 
+game_over_text = font.render("Game Over", True, RED)
+game_over_rect = game_over_text.get_rect()
+game_over_rect.center = (WINDOW_WIDTH / 2, WINDOW_HEIGHT/2)
+
+
+continue_text = font.render("Press any key to continue...", False, WHITE)
+continue_text_rect = continue_text.get_rect()
+continue_text_rect.center = (WINDOW_WIDTH/2, WINDOW_HEIGHT/2 + 40)
+
+
 coin_sound = pygame.mixer.Sound("coin_sound.wav")
 miss_sound = pygame.mixer.Sound("miss_sound.wav")
 pygame.mixer.music.load("ftd_background_music.wav")
@@ -51,7 +63,7 @@ player_image = pygame.image.load("dragon_right.png")
 player_rect = player_image.get_rect()
 # player_rect.left = 64
 # player_rect.centery = WINDOW_HEIGHT//2
-player_rect.x = 100
+player_rect.x = 40
 player_rect.y = 100
 
 
@@ -90,12 +102,6 @@ while running:
     if keys[pygame.K_DOWN] and player_rect.bottom < WINDOW_HEIGHT:
         player_rect.y += PLAYER_VELOCITY
 
-    if keys[pygame.K_LEFT] and player_rect.left > 0:
-        player_rect.x -= PLAYER_VELOCITY
-
-    if keys[pygame.K_RIGHT] and player_rect.right < WINDOW_WIDTH:
-        player_rect.x += PLAYER_VELOCITY
-
     if coin_rect.x < 0:
         player_lives -= 1
         miss_sound.play()
@@ -115,7 +121,27 @@ while running:
     lives_text = font.render(
         "Lives: " + str(player_lives), True, GREEN, DARKGREEN)
 
-    # TODO Add Game Over
+    if player_lives == 0:
+        display_surface.blit(score_text, score_rect)
+        display_surface.blit(title_text, title_rect)
+        display_surface.blit(lives_text, lives_rect)
+        display_surface.blit(game_over_text, game_over_rect)
+        display_surface.blit(continue_text, continue_text_rect)
+        pygame.display.update()
+        pygame.mixer.music.stop()
+        is_paused = True
+        while is_paused:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    score = 0
+                    player_lives = PLAYER_STARTING_LIVES
+                    player_rect.y = WINDOW_HEIGHT/2
+                    coin_velocity = COIN_STARTING_VELOCITY
+                    pygame.mixer.music.play(-1, 0.0)
+                    is_paused = False
+                if event.type == pygame.QUIT:
+                    is_paused = False
+                    running = False
 
     display_surface.fill(BLACK)
 
