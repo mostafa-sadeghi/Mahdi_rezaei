@@ -1,0 +1,8 @@
+*.exe
+*.spec
+.adea
+.vscode
+dist
+build
+venv
+env
